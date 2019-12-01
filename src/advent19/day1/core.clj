@@ -1,31 +1,23 @@
 (ns advent19.day1.core
-  (:require [clojure.string :as str]))
-
-(defn parse [path]
-  "Into an int seq"
-  (->> path
-      slurp
-      str/split-lines
-      (map (fn [s] (Integer/parseInt s)))))
+  (:require [clojure.java.io :as io]))
 
 (defn fuel-for-weight [mass]
   "Does not take the weight of the fuel itself into account"
   (-> mass
-      (/ 3)
-      Math/floor
-      int
+      (quot 3)
       (- 2)))
 
-(defn fuel-for-module-of-weight [m]
+(def total-fuel-for-weight
   "Accounts for the weight of the fuel itself"
-  (loop [total-fuel 0
-         new-fuel (fuel-for-weight m)]
-    (if (<= new-fuel 0)
-      total-fuel
-      (recur (+ total-fuel new-fuel) (fuel-for-weight new-fuel)))))
+  (memoize (fn [mass]
+             (if (<= mass 0)
+               0
+               (let [fuel (fuel-for-weight mass)]
+                 (+ fuel (total-fuel-for-weight fuel)))))))
 
-(def total-fuel
-  (->> "src/advent19/day1/input.txt"
-       parse
-       (map fuel-for-module-of-weight)
-       (reduce +)))
+(defn total-fuel []
+  (with-open [reader (io/reader "src/advent19/day1/input.txt")]
+    (->> (line-seq reader)
+         (map #(Integer/parseInt %))
+         (map total-fuel-for-weight)
+         (reduce +))))
