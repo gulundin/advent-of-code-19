@@ -17,26 +17,29 @@
 (defn read-rel [computer offset]
   (read-addr computer (+ (get computer :pc) offset)))
 
+(defn read-rel-pointer [computer offset]
+  (read-addr computer (read-rel computer offset)))
+
 (defn write-addr [computer address value]
   (assoc-in computer [:program address] value))
+
+(defn write-rel-pointer [computer offset value]
+  (write-addr computer (read-rel computer offset) value))
 
 (defn next-op [computer]
   (update computer :pc #(+ 4 %)))
 
-(defn binary-op [op computer address1 address2 address3]
-  (let [res (op (read-addr computer address1) (read-addr computer address2))]
-    (next-op (write-addr computer address3 res))))
+(defn binary-op [op computer]
+  (let [res (op (read-rel-pointer computer 1)
+                (read-rel-pointer computer 2))]
+    (next-op (write-rel-pointer computer 3 res))))
 
 (defn execute-computer [initial-computer]
   (loop [computer initial-computer]
-    (let [op (read-rel computer 0)
-          addr1 (read-rel computer 1)
-          addr2 (read-rel computer 2)
-          addr3 (read-rel computer 3)]
-      (case op
-        1 (recur (binary-op + computer addr1 addr2 addr3))
-        2 (recur (binary-op * computer addr1 addr2 addr3))
-        computer))))
+      (case (read-rel computer 0)
+        1 (recur (binary-op + computer))
+        2 (recur (binary-op * computer))
+        computer)))
 
 (defn execute [program noun verb]
   (-> {:pc 0 :program program}
