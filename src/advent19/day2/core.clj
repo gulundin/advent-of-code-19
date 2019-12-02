@@ -5,13 +5,11 @@
   (as-> path v
         (slurp v)
         (str/split v #",")
-        (map read-string v)))
+        (map read-string v)
+        (vec v)))
 
 (def program
   (parse "src/advent19/day2/input.txt"))
-
-(defn create-computer [program]
-  {:pc 0 :program (vec program)})
 
 (defn read-addr [computer address]
   (get-in computer [:program address]))
@@ -41,8 +39,7 @@
         computer))))
 
 (defn execute [program noun verb]
-  (-> program
-      create-computer
+  (-> {:pc 0 :program program}
       (write-addr 1 noun)
       (write-addr 2 verb)
       execute-computer
