@@ -2,45 +2,56 @@
   (:require [clojure.string :as str]
             [clojure.core.logic :as l]))
 
-(defn set-input [noun verb program]
-  (-> program
-      (assoc 1 noun)
-      (assoc 2 verb)))
+(defn parse [path]
+  (as-> path v
+        (slurp v)
+        (str/split v #",")
+        (map read-string v)))
 
-(defn create-execution [program]
-  {:pc 0 :program program})
+(def program
+  (parse "src/advent19/day2/input.txt"))
 
-(defn execute-step [{:keys [pc program]}]
-  (let [op (get program pc)
-        arg1 (get program (get program (+ pc 1)))
-        arg2 (get program (get program (+ pc 2)))
-        res-address (get program (+ pc 3))]
-    (case op
-      1 {:pc (+ pc 4), :program (assoc program res-address (+ arg1 arg2))}
-      2 {:pc (+ pc 4), :program (assoc program res-address (* arg1 arg2))}
-      99 {:stopped true, :program program})))
+(defn create-computer [program]
+  {:pc 0 :program (vec program)})
 
-(defn execute-until-stopped [initial-state]
-  (loop [state initial-state]
-    (if (contains? state :stopped)
-      (get state :program)
-      (recur (execute-step state)))))
+(defn read-addr [computer address]
+  (get-in computer [:program address]))
+
+(defn read-rel [computer offset]
+  (read-addr computer (+ (get computer :pc) offset)))
+
+(defn write-addr [computer address value]
+  (assoc-in computer [:program address] value))
+
+(defn next-op [computer]
+  (update computer :pc #(+ 4 %)))
+
+(defn binary-op [op computer address1 address2 address3]
+  (let [res (op (read-addr computer address1) (read-addr computer address2))]
+    (next-op (write-addr computer address3 res))))
+
+(defn execute-computer [initial-computer]
+  (loop [computer initial-computer]
+    (let [op (read-rel computer 0)
+          addr1 (read-rel computer 1)
+          addr2 (read-rel computer 2)
+          addr3 (read-rel computer 3)]
+      (case op
+        1 (recur (binary-op + computer addr1 addr2 addr3))
+        2 (recur (binary-op * computer addr1 addr2 addr3))
+        computer))))
+
+(defn set-input [computer noun verb]
+  (-> computer
+      (write-addr 1 noun)
+      (write-addr 2 verb)))
 
 (defn execute [program noun verb]
-  (->> program
+  (-> program
+       create-computer
        (set-input noun verb)
-       create-execution
-       execute-until-stopped
-       first))
-
-(defn parse [path]
-  (vec (as-> path v
-             (slurp v)
-             (str/split v #",")
-             (map read-string v))))
-
-(def the-program
-  (parse "src/advent19/day2/input.txt"))
+       execute-computer
+       (read-addr 0)))
 
 (defn find-input [program expected-output]
   (let [mappings (for [noun (range 100) verb (range 100)]
