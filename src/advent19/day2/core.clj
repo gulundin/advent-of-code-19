@@ -1,6 +1,5 @@
 (ns advent19.day2.core
-  (:require [clojure.string :as str]
-            [clojure.core.logic :as l]))
+  (:require [clojure.string :as str]))
 
 (defn parse [path]
   (as-> path v
@@ -41,17 +40,13 @@
         2 (recur (binary-op * computer addr1 addr2 addr3))
         computer))))
 
-(defn set-input [computer noun verb]
-  (-> computer
-      (write-addr 1 noun)
-      (write-addr 2 verb)))
-
 (defn execute [program noun verb]
   (-> program
-       create-computer
-       (set-input noun verb)
-       execute-computer
-       (read-addr 0)))
+      create-computer
+      (write-addr 1 noun)
+      (write-addr 2 verb)
+      execute-computer
+      (read-addr 0)))
 
 (defn find-input [program expected-output]
   (let [mappings (for [noun (range 100) verb (range 100)]
