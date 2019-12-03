@@ -17,17 +17,15 @@
        (map parse-instructions)))
 
 (defn move
-  "The point `dist` steps to the `dir` of `point`"
   ([instruction point] (move (:dir instruction) (:dist instruction) point))
   ([dir dist point]
-   (let [[axis op] (case dir :R [:x #(+ % dist)]
+   (let [[xy op] (case dir :R [:x #(+ % dist)]
                              :D [:y #(- % dist)]
                              :L [:x #(- % dist)]
                              :U [:y #(+ % dist)])]
-     (update-in (update-in point [:dist] (partial + dist)) [axis] op))))
+     (update-in (update-in point [:dist] (partial + dist)) [xy] op))))
 
 (defn on-path
-  "All points between `point` (not included) and the point `(move dir dist point)` (included)."
   ([instruction point] (on-path (:dir instruction) (:dist instruction) point))
   ([dir dist point]
    (->> (iterate inc 1)
@@ -35,33 +33,23 @@
         (take dist))))
 
 (defn traverse-segment [points instruction]
-  "All points encountered while following `instruction` from the last point in `points`,
-   plus `points`.
-
-   Meant to be used with `reduce`."
   (let [current-point (or (first points) {:x 0 :y 0 :dist 0})]
     (into points (on-path instruction current-point))))
 
 (defn drop-distances [points]
-  "Removes the `:dist` key from every point in `points`"
   (map #(dissoc % :dist) points))
 
 (defn calc-distances [points]
-  "Converts a seq of `points` (including a `:dist`) to a map
-   from the point (without `:dist`) to the shortest `:dist` that
-   occurred for that point in the input seq."
   (let [grouped (group-by #(dissoc % :dist) points)]
     (into {} (for [[point full-points] grouped]
                [point (apply min (map :dist full-points))]))))
 
 (defn traverse [instructions]
-  "All points encountered when traversing the path given by the `instructions`"
   ; Using a linked-list has huge impact on performance
   (let [points (reduce traverse-segment '() instructions)]
     {:points (drop-distances points) :distances (calc-distances points)}))
 
 (defn distance [{:keys [x y]}]
-  "Manhattan distance to origo"
   (+ (Math/abs ^int x) (Math/abs ^int y)))
 
 (defn answer []
