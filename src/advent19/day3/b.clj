@@ -34,34 +34,30 @@
         (map #(move dir % point))
         (take dist))))
 
+(defn traverse-segment [points instruction]
+  "All points encountered while following `instruction` from the last point in `points`,
+   plus `points`.
+
+   Meant to be used with `reduce`."
+  (let [current-point (or (first points) {:x 0 :y 0 :dist 0})]
+    (into points (on-path instruction current-point))))
+
 (defn drop-distances [points]
   "Removes the `:dist` key from every point in `points`"
   (map #(dissoc % :dist) points))
 
-(defn calc-distances
-  "Converts a set of `points` (including a `:dist`) to a map
-   from the point (without `:dist`) to the lowest `:dist` that
-   occured for that point in the input set."
-  ([points] (calc-distances points {}))
-  ([points distances]
-   (if (empty? points)
-     distances
-     (let [point (first points)
-           old-dist (get distances point Integer/MAX_VALUE)
-           new-dist (:dist point)
-           dist (min old-dist new-dist)
-           distances (assoc distances (dissoc point :dist) dist)]
-       (recur (rest points) distances)))))
-
-(defn traverse-segment [points instruction]
-  "All points encountered while following `instruction` from the last point in `points`,
-   plus `points`."
-  (let [current-point (or (last points) {:x 0 :y 0 :dist 0})]
-    (into points (on-path instruction current-point))))
+(defn calc-distances [points]
+  "Converts a seq of `points` (including a `:dist`) to a map
+   from the point (without `:dist`) to the shortest `:dist` that
+   occurred for that point in the input seq."
+  (let [grouped (group-by #(dissoc % :dist) points)]
+    (into {} (for [[point full-points] grouped]
+               [point (apply min (map :dist full-points))]))))
 
 (defn traverse [instructions]
   "All points encountered when traversing the path given by the `instructions`"
-  (let [points (reduce traverse-segment [] instructions)]
+  ; Using a linked-list has huge impact on performance
+  (let [points (reduce traverse-segment '() instructions)]
     {:points (drop-distances points) :distances (calc-distances points)}))
 
 (defn distance [{:keys [x y]}]

@@ -37,12 +37,13 @@
 (defn traverse-segment [points instruction]
   "All points encountered while following `instruction` from the last point in `points`,
    plus `points`."
-   (let [current-point (or (last points) {:x 0 :y 0})]
+   (let [current-point (or (first points) {:x 0 :y 0})]
      (into points (on-path instruction current-point))))
 
 (defn traverse [instructions]
   "All points encountered when traversing the path given by the `instructions`"
-  (reduce traverse-segment [] instructions))
+  ; Using a linked-list has huge impact on performance
+  (reduce traverse-segment '() instructions))
 
 (defn distance [{:keys [x y]}]
   "Manhattan distance to origo"
