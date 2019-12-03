@@ -3,7 +3,7 @@
             [clojure.string :as str]))
 
 (defn parse-instruction [word]
-  {:dir (keyword (subs word 0 1))
+  {:dir  (keyword (subs word 0 1))
    :dist (read-string (subs word 1))})
 
 (defn parse-instructions [line]
@@ -12,9 +12,9 @@
 
 (defn parse [path]
   (->> path
-      slurp
-      str/split-lines
-      (map parse-instructions)))
+       slurp
+       str/split-lines
+       (map parse-instructions)))
 
 (defn move
   ([instruction point] (move (:dir instruction) (:dist instruction) point))
@@ -25,16 +25,14 @@
                              :U [:y #(+ % dist)])]
      (update-in point [axis] op))))
 
-(defn on-path
-  ([instruction point] (on-path (:dir instruction) (:dist instruction) point))
-  ([dir dist point]
-   (->> (iterate inc 1)
-        (map #(move dir % point))
-        (take dist))))
+(defn on-path [{:keys [dir dist]} point]
+  (->> (iterate inc 1)
+       (map #(move dir % point))
+       (take dist)))
 
 (defn traverse-segment [points instruction]
-   (let [current-point (or (last points) {:x 0 :y 0})]
-     (into points (on-path instruction current-point))))
+  (let [current-point (or (last points) {:x 0 :y 0})]
+    (into points (on-path instruction current-point))))
 
 (defn traverse [instructions]
   (reduce traverse-segment [] instructions))
