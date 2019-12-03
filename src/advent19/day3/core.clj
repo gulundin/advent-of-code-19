@@ -1,4 +1,4 @@
-(ns advent19.day3.a
+(ns advent19.day3.core
   (:require [clojure.set :as set]
             [clojure.string :as str]))
 
@@ -37,7 +37,6 @@
      (into points (on-path instruction current-point))))
 
 (defn traverse [instructions]
-  ; Using a linked-list has huge impact on performance
   (reduce traverse-segment [] instructions))
 
 (defn manhattan-distance [{:keys [x y]}]
