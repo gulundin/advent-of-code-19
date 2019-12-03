@@ -20,11 +20,11 @@
   "The point `dist` steps to the `dir` of `point`"
   ([instruction point] (move (:dir instruction) (:dist instruction) point))
   ([dir dist point]
-   (case dir
-     :R (update-in point [:x] (partial + dist))
-     :D (update-in point [:y] #(- % dist))
-     :L (update-in point [:x] #(- % dist))
-     :U (update-in point [:y] (partial + dist)))))
+   (let [[axis op] (case dir :R [:x #(+ % dist)]
+                             :D [:y #(- % dist)]
+                             :L [:x #(- % dist)]
+                             :U [:y #(+ % dist)])]
+     (update-in point [axis] op))))
 
 (defn on-path
   "All points between `point` (not included) and the point `(move dir dist point)` (included)."
@@ -32,18 +32,17 @@
   ([dir dist point]
    (->> (iterate inc 1)
         (map #(move dir % point))
-        (take dist)
-        (set))))
+        (take dist))))
 
-(defn traverse
+(defn traverse-segment [points instruction]
+  "All points encountered while following `instruction` from the last point in `points`,
+   plus `points`."
+   (let [current-point (or (last points) {:x 0 :y 0})]
+     (into points (on-path instruction current-point))))
+
+(defn traverse [instructions]
   "All points encountered when traversing the path given by the `instructions`"
-  ([instructions] (traverse instructions {:current-point {:x 0 :y 0} :points #{}}))
-  ([instructions {:keys [current-point points]}]
-   (if (empty? instructions)
-     points
-     (let [updated-points (set/union points (on-path (first instructions) current-point))
-           next-point (move (first instructions) current-point)]
-       (recur (rest instructions) {:current-point next-point :points updated-points})))))
+  (reduce traverse-segment [] instructions))
 
 (defn distance [{:keys [x y]}]
   "Manhattan distance to origo"
@@ -53,5 +52,5 @@
   (let [[instructions1 instructions2] (parse "src/advent19/day3/input.txt")
         path1 (traverse instructions1)
         path2 (traverse instructions2)
-        intersections (set/intersection path1 path2)]
+        intersections (set/intersection (set path1) (set path2))]
     (apply min (map distance intersections))))
