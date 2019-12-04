@@ -16,7 +16,8 @@
        (some (partial = 2))))
 
 (defn answer []
-  (count (->> (range 130254 678275)
-              (map digits)
-              (filter is-non-decreasing)
-              (filter has-adjecent-pair))))
+  (->> (range 130254 678275)
+       (map digits)
+       (filter is-non-decreasing)
+       (filter has-adjecent-pair)
+       (count)))
