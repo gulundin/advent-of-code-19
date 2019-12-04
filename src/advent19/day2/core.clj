@@ -1,5 +1,6 @@
 (ns advent19.day2.core
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.core.reducers :as r]))
 
 (defn parse [path]
   (as-> path v
@@ -36,10 +37,10 @@
 
 (defn execute-computer [initial-computer]
   (loop [computer initial-computer]
-      (case (read-rel computer 0)
-        1 (recur (binary-op + computer))
-        2 (recur (binary-op * computer))
-        computer)))
+    (case (read-rel computer 0)
+      1 (recur (binary-op + computer))
+      2 (recur (binary-op * computer))
+      computer)))
 
 (defn execute [program noun verb]
   (-> {:pc 0 :program program}

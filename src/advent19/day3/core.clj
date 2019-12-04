@@ -42,9 +42,9 @@
 
 (defn answer []
   (let [[instructions1 instructions2] (parse input)
-        wire1 (make-wire instructions1)
-        wire2 (make-wire instructions2)
-        intersections (set/intersection (set wire1) (set wire2))]
-    (apply min (map (fn [point] (+ (distance-along-wire point wire1)
-                                   (distance-along-wire point wire2)))
-                    intersections))))
+        wire1 (future (make-wire instructions1))
+        wire2 (future (make-wire instructions2))]
+    (->> (set/intersection (set @wire1) (set @wire2))
+         (map (fn [point] (+ (distance-along-wire point @wire1)
+                             (distance-along-wire point @wire2))))
+         (reduce min))))
