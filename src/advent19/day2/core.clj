@@ -1,6 +1,5 @@
 (ns advent19.day2.core
-  (:require [clojure.string :as str]
-            [clojure.core.reducers :as r]))
+  (:require [clojure.string :as str]))
 
 (defn parse [path]
   (as-> path v
