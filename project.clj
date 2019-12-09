@@ -6,5 +6,6 @@
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.clojure/core.async "0.5.527"]
                  [org.clojure/core.logic "0.8.11"]
-                 [org.clojure/math.combinatorics "0.1.6"]]
+                 [org.clojure/math.combinatorics "0.1.6"]
+                 [org.clojure/data.xml "0.0.8"]]
   :repl-options {:init-ns advent19.core})

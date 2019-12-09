@@ -11,7 +11,7 @@
 
 (defn answer1 []
   (->> input
-       (partition size)
+       (partition size input)
        (apply min-key (partial n-chars \0))
        (#(* (n-chars \1 %) (n-chars \2 %)))))
 
